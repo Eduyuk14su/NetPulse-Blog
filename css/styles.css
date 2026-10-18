@@ -735,13 +735,12 @@ p {
 .callout {
   display: flex;
   gap: 16px;
-  margin: 27px 0;
-  background: #fff6df;
+  margin: 27px auto; 
+  max-width: 1104px; 
   border: 1px solid #f0dfb1;
   border-radius: 12px;
   padding: 22px;
 }
-
 .callout-icon {
   flex-shrink: 0;
   display: grid;
