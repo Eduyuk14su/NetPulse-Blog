@@ -733,6 +733,7 @@ p {
 }
 
 .callout {
+  background: #fff6df;
   display: flex;
   gap: 16px;
   margin: 27px auto; 
