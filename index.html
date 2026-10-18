@@ -1,0 +1,1761 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="Artigo técnico do Grupo 2 sobre Árvore de Decisão, Random Forest e XGBoost aplicados à predição de riscos em redes."
+    >
+
+    <title>NetPulse — Árvore, floresta ou boosting?</title>
+
+    <!-- Fontes do projeto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Folha de estilos -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+    <!-- Acessibilidade: permite pular diretamente ao conteúdo -->
+    <a class="skip-link" href="#conteudo">
+        Pular para o conteúdo
+    </a>
+
+    <!-- ========================================
+         CABEÇALHO E MENU DE NAVEGAÇÃO
+    ========================================= -->
+    <header class="topbar">
+        <div class="nav-wrap">
+
+            <a
+                class="brand"
+                href="#inicio"
+                aria-label="NetPulse, início"
+            >
+                <span class="brand-mark">N<span>↗</span></span>
+
+                <span>
+                    NetPulse
+                    <small>INTELIGÊNCIA PARA REDES</small>
+                </span>
+            </a>
+
+            <button
+                class="menu-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="nav-links"
+                aria-label="Abrir ou fechar menu"
+            >
+                Menu ☰
+            </button>
+
+            <nav id="nav-links" aria-label="Navegação principal">
+                <a href="#arvore">Árvore</a>
+                <a href="#random-forest">Random Forest</a>
+                <a href="#xgboost">XGBoost</a>
+                <a href="#comparacao">Comparação</a>
+                <a href="#experimento">Experimento</a>
+                <a href="#autoria">Autores</a>
+            </nav>
+
+        </div>
+    </header>
+
+    <main id="conteudo">
+
+        <!-- ========================================
+             1. APRESENTAÇÃO PRINCIPAL
+        ========================================= -->
+        <section class="hero" id="inicio">
+            <div class="hero-grid">
+
+                <div class="hero-copy">
+
+                    <div class="eyebrow">
+                        <span class="pulse"></span>
+                        ARTIGO TÉCNICO · GRUPO 2
+                    </div>
+
+                    <h1>
+                        Árvore, floresta ou <em>boosting?</em>
+                    </h1>
+
+                    <p class="hero-sub">
+                        Como escolher um modelo de Machine Learning para
+                        antecipar riscos em redes — com critérios, código
+                        e uma comparação honesta.
+                    </p>
+
+                    <div class="hero-meta">
+                        <span>Publicado em 18 out. 2026</span>
+                        <span class="dot">•</span>
+                        <span>Revisado em 18 out. 2026</span>
+                    </div>
+
+                    <div class="hero-actions">
+                        <a class="button primary" href="#experimento">
+                            Explorar o cenário NetPulse <span>↘</span>
+                        </a>
+
+                        <a class="button secondary" href="#indice">
+                            Ver índice
+                        </a>
+                    </div>
+
+                    <!-- Autores em destaque -->
+                    <div class="author-mini">
+
+                        <div class="mini-avatars">
+                            <img
+                                src="images/gisele-franco.jpg"
+                                alt="Retrato de Gisele Franco de Lima"
+                            >
+
+                            <img
+                                src="images/rodrigo-galvao.jpg"
+                                alt="Retrato de Rodrigo de Souza Galvão"
+                            >
+
+                            <img
+                                src="images/luigi_caires.png"
+                                alt="Retrato de Luigi Santos Caires"
+                            >
+
+                            <span>+3</span>
+                        </div>
+
+                        <p>
+                            <strong>
+                                Eduardo Gabriel · Gabriel Alves ·
+                                Gisele Franco · Luigi Caires · Rodrigo Galvão
+                            </strong>
+
+                            <small>
+                                Ciência da Computação · Braz Cubas
+                            </small>
+                        </p>
+
+                    </div>
+                </div>
+
+                <!-- Ilustração conceitual da rede -->
+                <div
+                    class="hero-visual"
+                    role="img"
+                    aria-label="Ilustração conceitual de monitoramento de rede"
+                >
+
+                    <div class="visual-top">
+                        <span class="live-dot"></span>
+                        NETPULSE / MONITORAMENTO
+                    </div>
+
+                    <div class="network-lines">
+
+                        <svg
+                            viewBox="0 0 500 340"
+                            aria-hidden="true"
+                        >
+                            <defs>
+                                <linearGradient
+                                    id="lineGrad"
+                                    x1="0"
+                                    y1="0"
+                                    x2="1"
+                                    y2="0"
+                                >
+                                    <stop stop-color="#5ee0ba"/>
+                                    <stop
+                                        offset="1"
+                                        stop-color="#7896ff"
+                                    />
+                                </linearGradient>
+                            </defs>
+
+                            <!-- Conexões entre os nós -->
+                            <g
+                                stroke="url(#lineGrad)"
+                                stroke-width="2"
+                                opacity=".8"
+                                fill="none"
+                            >
+                                <path d="M250 170 L110 82 L70 180 L145 270 L250 170 L370 75 L430 180 L350 270 L250 170"/>
+                                <path d="M110 82 L370 75"/>
+                                <path d="M70 180 L430 180"/>
+                                <path d="M145 270 L350 270"/>
+                            </g>
+
+                            <!-- Nós da rede -->
+                            <g
+                                fill="#132e3b"
+                                stroke="#66e2c2"
+                                stroke-width="2"
+                            >
+                                <circle cx="250" cy="170" r="43" fill="#164b4a"/>
+                                <circle cx="110" cy="82" r="22"/>
+                                <circle cx="70" cy="180" r="22"/>
+                                <circle cx="145" cy="270" r="22"/>
+                                <circle cx="370" cy="75" r="22"/>
+                                <circle cx="430" cy="180" r="22"/>
+                                <circle cx="350" cy="270" r="22"/>
+                            </g>
+
+                            <!-- Identificação dos nós -->
+                            <g
+                                fill="#e6fff7"
+                                font-family="sans-serif"
+                                text-anchor="middle"
+                            >
+                                <text x="250" y="165" font-size="13">NET</text>
+                                <text x="250" y="181" font-size="13">PULSE</text>
+                                <text x="110" y="87" font-size="10">A</text>
+                                <text x="70" y="185" font-size="10">B</text>
+                                <text x="145" y="275" font-size="10">C</text>
+                                <text x="370" y="80" font-size="10">D</text>
+                                <text x="430" y="185" font-size="10">E</text>
+                                <text x="350" y="275" font-size="10">F</text>
+                            </g>
+                        </svg>
+
+                    </div>
+
+                    <!-- Indicadores de rede -->
+                    <div class="metric-row">
+
+                        <div>
+                            <small>LATÊNCIA</small>
+                            <strong>ms</strong>
+                            <span>tempo de resposta</span>
+                        </div>
+
+                        <div>
+                            <small>PERDA</small>
+                            <strong>%</strong>
+                            <span>pacotes perdidos</span>
+                        </div>
+
+                        <div>
+                            <small>JITTER</small>
+                            <strong>ms</strong>
+                            <span>variação da latência</span>
+                        </div>
+
+                    </div>
+
+                    <p class="visual-note">
+                        Esquema conceitual — não representa dados ao vivo.
+                    </p>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================
+             2. INTRODUÇÃO AO PROBLEMA
+        ========================================= -->
+        <section class="intro-band">
+
+            <div>
+                <span class="section-kicker">O PROBLEMA</span>
+
+                <h2>
+                    Uma rede raramente falha sem dar sinais.
+                </h2>
+            </div>
+
+            <p>
+                Latência crescente, perda de pacotes e instabilidade
+                podem anteceder uma degradação do serviço. Vamos investigar
+                como modelos baseados em árvores podem transformar esses
+                indicadores em uma classificação de risco — sem confundir
+                demonstração com validação operacional.
+            </p>
+
+        </section>
+
+        <!-- ========================================
+             3. ÍNDICE DO ARTIGO
+        ========================================= -->
+        <section class="content-section" id="indice">
+
+            <div class="section-heading">
+                <span class="section-kicker">ROTEIRO DE LEITURA</span>
+
+                <h2>Encontre o que você procura</h2>
+
+                <p>
+                    Começamos com um exemplo simples e avançamos para
+                    as diferenças entre os três modelos.
+                </p>
+            </div>
+
+            <div class="index-grid">
+
+                <a href="#arvore">
+                    <span>01</span>
+                    <strong>Árvore de Decisão</strong>
+                    <small>Regras claras, um caminho de cada vez</small>
+                    <b>↗</b>
+                </a>
+
+                <a href="#random-forest">
+                    <span>02</span>
+                    <strong>Random Forest</strong>
+                    <small>Várias árvores, uma votação</small>
+                    <b>↗</b>
+                </a>
+
+                <a href="#xgboost">
+                    <span>03</span>
+                    <strong>XGBoost</strong>
+                    <small>Árvores que corrigem erros em sequência</small>
+                    <b>↗</b>
+                </a>
+
+                <a href="#comparacao">
+                    <span>04</span>
+                    <strong>Comparação</strong>
+                    <small>Vantagens, custos e cenários de uso</small>
+                    <b>↗</b>
+                </a>
+
+                <a href="#experimento">
+                    <span>05</span>
+                    <strong>NetPulse em prática</strong>
+                    <small>Dados, métricas e limites do experimento</small>
+                    <b>↗</b>
+                </a>
+
+                <a href="#recomendacao">
+                    <span>06</span>
+                    <strong>Recomendação</strong>
+                    <small>O que precisamos provar antes de escolher</small>
+                    <b>↗</b>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- ========================================
+             4. ÁRVORE DE DECISÃO
+        ========================================= -->
+        <section class="content-section model-section" id="arvore">
+
+            <div class="model-label">
+                <span class="number">01</span>
+                <span>MODELO BASELINE</span>
+            </div>
+
+            <div class="two-col">
+
+                <div>
+                    <h2>Árvore de Decisão</h2>
+
+                    <p class="lead">
+                        Uma sequência de perguntas divide os dados
+                        até chegar a uma previsão.
+                    </p>
+
+                    <p>
+                        Imagine que o NetPulse recebe uma medição de rede.
+                        A árvore pode perguntar se a perda de pacotes passou
+                        de um limite e, depois, se a latência está alta.
+                        Cada resposta direciona para outro nó; a folha final
+                        representa a classe prevista.
+                    </p>
+
+                    <p>
+                        É um bom ponto de partida porque as regras são fáceis
+                        de inspecionar. O risco é a árvore ficar profunda
+                        demais e memorizar particularidades dos dados de
+                        treino — o chamado <strong>overfitting</strong>,
+                        quando o modelo funciona bem nos exemplos conhecidos,
+                        mas piora em dados novos.
+                    </p>
+
+                    <div class="tag-row">
+                        <span>Interpretabilidade alta</span>
+                        <span>Baixa latência potencial</span>
+                        <span>Variância elevada</span>
+                    </div>
+                </div>
+
+                <!-- Diagrama da árvore -->
+                <div class="diagram-card">
+
+                    <div class="diagram-title">
+                        EXEMPLO DIDÁTICO DE UMA ÁRVORE
+                    </div>
+
+                    <svg
+                        class="tree-svg"
+                        viewBox="0 0 460 310"
+                        role="img"
+                        aria-label="Árvore ilustrativa que classifica o risco a partir da perda de pacotes e da latência"
+                    >
+                        <g fill="none" stroke="#9baea8" stroke-width="2">
+                            <path d="M230 70 L120 130"/>
+                            <path d="M230 70 L340 130"/>
+                            <path d="M120 180 L75 230"/>
+                            <path d="M120 180 L200 230"/>
+                            <path d="M340 180 L340 230"/>
+                        </g>
+
+                        <g font-family="DM Sans, sans-serif" text-anchor="middle">
+
+                            <rect x="135" y="20" width="190" height="50" rx="10" fill="#173e32"/>
+
+                            <text x="230" y="41" fill="#fff" font-size="12">
+                                Perda de pacotes
+                            </text>
+
+                            <text x="230" y="56" fill="#bdebd8" font-size="11">
+                                acima do limite?
+                            </text>
+
+                            <rect x="40" y="130" width="160" height="50" rx="9" fill="#e6f4ed" stroke="#65a878"/>
+
+                            <text x="120" y="151" fill="#174d3a" font-size="12">
+                                Latência alta?
+                            </text>
+
+                            <text x="120" y="166" fill="#4e7163" font-size="10">
+                                se não
+                            </text>
+
+                            <rect x="270" y="130" width="140" height="50" rx="9" fill="#f8e8df" stroke="#d58a68"/>
+
+                            <text x="340" y="151" fill="#8e462a" font-size="12">
+                                RISCO ALTO
+                            </text>
+
+                            <text x="340" y="166" fill="#8e462a" font-size="10">
+                                se sim
+                            </text>
+
+                            <rect x="15" y="230" width="120" height="45" rx="8" fill="#e6f4ed" stroke="#65a878"/>
+
+                            <text x="75" y="257" fill="#174d3a" font-size="12">
+                                Risco baixo
+                            </text>
+
+                            <rect x="140" y="230" width="120" height="45" rx="8" fill="#fff1cc" stroke="#d9a441"/>
+
+                            <text x="200" y="257" fill="#785914" font-size="12">
+                                Risco médio
+                            </text>
+
+                            <text x="105" y="112" fill="#62746b" font-size="10">
+                                NÃO
+                            </text>
+
+                            <text x="350" y="112" fill="#62746b" font-size="10">
+                                SIM
+                            </text>
+
+                        </g>
+                    </svg>
+
+                    <p class="figure-caption">
+                        Figura 1. Regras fictícias para explicar a lógica
+                        de uma árvore.
+                    </p>
+
+                </div>
+            </div>
+
+            <div class="detail-box">
+                <strong>Como a árvore escolhe uma pergunta?</strong>
+
+                <p>
+                    Critérios como o índice de Gini e a entropia estimam
+                    a mistura de classes em cada divisão. O algoritmo
+                    procura uma divisão que deixe os grupos resultantes
+                    mais homogêneos. A poda ou limites de profundidade
+                    ajudam a evitar árvores excessivamente complexas.
+                </p>
+
+                <div class="formula">
+                    <span>Impureza de Gini</span>
+                    <code>Gini = 1 − Σ pᵢ²</code>
+                    <span class="muted">
+                        Quanto mais próximo de 0, mais pura é a divisão.
+                    </span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ========================================
+             5. RANDOM FOREST
+        ========================================= -->
+        <section
+            class="content-section model-section alt-section"
+            id="random-forest"
+        >
+
+            <div class="model-label">
+                <span class="number">02</span>
+                <span>BAGGING · MODELO DE CONJUNTO</span>
+            </div>
+
+            <div class="two-col">
+
+                <div>
+                    <h2>Random Forest</h2>
+
+                    <p class="lead">
+                        Em vez de confiar em uma única árvore,
+                        combinamos as previsões de muitas.
+                    </p>
+
+                    <p>
+                        A <strong>Random Forest</strong> treina árvores
+                        com diferentes amostras bootstrap — amostras
+                        obtidas por sorteio com reposição — e considera
+                        subconjuntos aleatórios de atributos. Esse processo
+                        é chamado <strong>bagging</strong> (agregação de
+                        modelos treinados em amostras diferentes).
+                    </p>
+
+                    <p>
+                        Na classificação, as árvores votam e a categoria
+                        mais votada vence. Como as árvores não são idênticas,
+                        a combinação tende a reduzir a variância em relação
+                        a uma árvore isolada. Ainda assim, muitas árvores
+                        podem exigir mais memória e tornam a decisão completa
+                        menos simples de explicar.
+                    </p>
+
+                    <div class="tag-row">
+                        <span>Robustez</span>
+                        <span>Boa opção para dados tabulares</span>
+                        <span>Importância dos atributos</span>
+                    </div>
+                </div>
+
+                <div class="diagram-card">
+
+                    <div class="diagram-title">
+                        BAGGING: TREINAR EM PARALELO E VOTAR
+                    </div>
+
+                    <svg
+                        class="forest-svg"
+                        viewBox="0 0 460 270"
+                        role="img"
+                        aria-label="Três árvores produzem votos combinados por maioria"
+                    >
+                        <g font-family="DM Sans, sans-serif" text-anchor="middle">
+
+                            <rect x="12" y="20" width="120" height="48" rx="9" fill="#173e32"/>
+                            <rect x="170" y="20" width="120" height="48" rx="9" fill="#173e32"/>
+                            <rect x="328" y="20" width="120" height="48" rx="9" fill="#173e32"/>
+
+                            <g fill="#fff" font-size="12">
+                                <text x="72" y="40">Árvore 1</text>
+                                <text x="72" y="55">amostra A</text>
+
+                                <text x="230" y="40">Árvore 2</text>
+                                <text x="230" y="55">amostra B</text>
+
+                                <text x="388" y="40">Árvore 3</text>
+                                <text x="388" y="55">amostra C</text>
+                            </g>
+
+                            <g stroke="#9baea8" stroke-width="2" fill="none">
+                                <path d="M72 68 L72 104 L230 135"/>
+                                <path d="M230 68 L230 135"/>
+                                <path d="M388 68 L388 104 L230 135"/>
+                            </g>
+
+                            <rect x="135" y="135" width="190" height="55" rx="10" fill="#e6f4ed" stroke="#65a878"/>
+
+                            <text x="230" y="157" fill="#174d3a" font-size="13">
+                                Votação por maioria
+                            </text>
+
+                            <text x="230" y="174" fill="#4e7163" font-size="11">
+                                2 votos em 3 → classe final
+                            </text>
+
+                            <path d="M230 190 L230 216" stroke="#9baea8" stroke-width="2"/>
+
+                            <rect x="145" y="216" width="170" height="40" rx="9" fill="#dcecfb" stroke="#7799c4"/>
+
+                            <text x="230" y="241" fill="#244d79" font-size="12">
+                                Risco previsto
+                            </text>
+
+                        </g>
+                    </svg>
+
+                    <p class="figure-caption">
+                        Figura 2. Esquema conceitual de bagging.
+                        Três árvores são apenas uma ilustração,
+                        não a configuração final do experimento.
+                    </p>
+
+                </div>
+            </div>
+
+            <div class="detail-box">
+                <strong>Quando vale considerar?</strong>
+
+                <p>
+                    Quando queremos um baseline mais estável em dados
+                    tabulares, com várias medições relacionadas.
+                    A importância dos atributos pode ajudar a investigar
+                    quais variáveis mais influenciam as previsões,
+                    mas não prova causalidade.
+                </p>
+            </div>
+
+        </section>
+
+        <!-- ========================================
+             6. XGBOOST
+        ========================================= -->
+        <section class="content-section model-section" id="xgboost">
+
+            <div class="model-label">
+                <span class="number">03</span>
+                <span>BOOSTING · APRENDIZADO SEQUENCIAL</span>
+            </div>
+
+            <div class="two-col">
+
+                <div>
+                    <h2>XGBoost</h2>
+
+                    <p class="lead">
+                        Cada nova árvore tenta melhorar o conjunto
+                        construído até então.
+                    </p>
+
+                    <p>
+                        XGBoost significa <em>eXtreme Gradient Boosting</em>.
+                        É uma implementação otimizada de gradient boosting:
+                        árvores são adicionadas em sequência para corrigir
+                        erros residuais das previsões anteriores.
+                        O algoritmo usa otimizações computacionais e
+                        regularização, que penaliza modelos excessivamente
+                        complexos.
+                    </p>
+
+                    <p>
+                        A <strong>taxa de aprendizado</strong> controla
+                        o tamanho da contribuição de cada nova árvore.
+                        Passos menores podem exigir mais rodadas; rodadas
+                        demais ou árvores profundas podem causar overfitting.
+                        A parada antecipada (<em>early stopping</em>) pode
+                        interromper o treino quando a métrica de validação
+                        deixa de melhorar.
+                    </p>
+
+                    <div class="tag-row">
+                        <span>Potencial preditivo alto</span>
+                        <span>Exige ajuste</span>
+                        <span>Treino sequencial</span>
+                    </div>
+                </div>
+
+                <div class="diagram-card">
+
+                    <div class="diagram-title">
+                        BOOSTING: CORRIGIR EM SEQUÊNCIA
+                    </div>
+
+                    <svg
+                        class="boost-svg"
+                        viewBox="0 0 460 270"
+                        role="img"
+                        aria-label="Diagrama ilustrativo de árvores sequenciais que corrigem erros"
+                    >
+                        <g font-family="DM Sans, sans-serif" text-anchor="middle">
+
+                            <rect x="15" y="26" width="120" height="54" rx="9" fill="#e6f4ed" stroke="#65a878"/>
+
+                            <text x="75" y="48" fill="#174d3a" font-size="12">
+                                Previsão inicial
+                            </text>
+
+                            <text x="75" y="64" fill="#4e7163" font-size="10">
+                                erro observado
+                            </text>
+
+                            <path d="M135 53 L164 53" stroke="#9baea8" stroke-width="2"/>
+                            <path d="M158 47 L165 53 L158 59" fill="none" stroke="#9baea8" stroke-width="2"/>
+
+                            <rect x="165" y="26" width="120" height="54" rx="9" fill="#fff1cc" stroke="#d9a441"/>
+
+                            <text x="225" y="48" fill="#785914" font-size="12">
+                                Árvore 1
+                            </text>
+
+                            <text x="225" y="64" fill="#785914" font-size="10">
+                                corrige parte
+                            </text>
+
+                            <path d="M285 53 L314 53" stroke="#9baea8" stroke-width="2"/>
+                            <path d="M308 47 L315 53 L308 59" fill="none" stroke="#9baea8" stroke-width="2"/>
+
+                            <rect x="315" y="26" width="130" height="54" rx="9" fill="#f8e8df" stroke="#d58a68"/>
+
+                            <text x="380" y="48" fill="#8e462a" font-size="12">
+                                Árvore 2…n
+                            </text>
+
+                            <text x="380" y="64" fill="#8e462a" font-size="10">
+                                nova correção
+                            </text>
+
+                            <path
+                                d="M380 80 L380 118 L230 145 M225 80 L225 145 M75 80 L75 118 L230 145"
+                                stroke="#9baea8"
+                                stroke-width="2"
+                                fill="none"
+                            />
+
+                            <rect x="125" y="145" width="210" height="52" rx="10" fill="#173e32"/>
+
+                            <text x="230" y="166" fill="#fff" font-size="13">
+                                Soma das contribuições
+                            </text>
+
+                            <text x="230" y="182" fill="#bdebd8" font-size="11">
+                                com regularização
+                            </text>
+
+                            <path d="M230 197 L230 219" stroke="#9baea8" stroke-width="2"/>
+
+                            <rect x="140" y="219" width="180" height="35" rx="8" fill="#dcecfb" stroke="#7799c4"/>
+
+                            <text x="230" y="241" fill="#244d79" font-size="12">
+                                Previsão final
+                            </text>
+
+                        </g>
+                    </svg>
+
+                    <p class="figure-caption">
+                        Figura 3. No boosting, as árvores são adicionadas
+                        sequencialmente. O desenho resume a ideia,
+                        não os cálculos internos do algoritmo.
+                    </p>
+
+                </div>
+            </div>
+
+            <div class="detail-box">
+                <strong>Quando vale considerar?</strong>
+
+                <p>
+                    Quando o objetivo é obter desempenho preditivo forte
+                    em dados tabulares e há tempo para ajustar
+                    hiperparâmetros com uma validação separada.
+                    Não é correto afirmar que o XGBoost sempre vence:
+                    o resultado depende dos dados, das métricas e do ajuste.
+                </p>
+            </div>
+
+        </section>
+
+        <!-- ========================================
+             7. COMPARAÇÃO DOS MODELOS
+        ========================================= -->
+        <section class="content-section comparison-section" id="comparacao">
+
+            <div class="section-heading">
+                <span class="section-kicker">VISÃO LADO A LADO</span>
+
+                <h2>Três modelos, compromissos diferentes</h2>
+
+                <p>
+                    A escolha depende do custo dos erros, da latência
+                    e da necessidade de explicar as decisões.
+                </p>
+            </div>
+
+            <div class="table-wrap">
+
+                <table>
+                    <caption>
+                        Quadro comparativo qualitativo dos três modelos
+                    </caption>
+
+                    <thead>
+                        <tr>
+                            <th scope="col">Critério</th>
+                            <th scope="col">Árvore de Decisão</th>
+                            <th scope="col">Random Forest</th>
+                            <th scope="col">XGBoost</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr>
+                            <th scope="row">Como funciona</th>
+                            <td>Uma sequência de perguntas e regras.</td>
+                            <td>
+                                Várias árvores em amostras e atributos
+                                diferentes; votação.
+                            </td>
+                            <td>
+                                Árvores sequenciais que corrigem
+                                erros anteriores.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">Vantagens</th>
+                            <td>Simples, rápida e fácil de auditar.</td>
+                            <td>Estável e robusta em muitos dados tabulares.</td>
+                            <td>Alto potencial preditivo e regularização.</td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">Desvantagens</th>
+                            <td>
+                                Sensível a pequenas mudanças;
+                                pode decorar o treino.
+                            </td>
+                            <td>
+                                Mais memória; decisão global
+                                menos interpretável.
+                            </td>
+                            <td>
+                                Parâmetros e validação exigem cuidado.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">Interpretabilidade</th>
+                            <td><span class="rating high">Alta</span></td>
+                            <td><span class="rating mid">Baixa a moderada</span></td>
+                            <td><span class="rating mid">Baixa a moderada</span></td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">Tempo de treino</th>
+                            <td>Geralmente baixo.</td>
+                            <td>
+                                Geralmente moderado; árvores podem
+                                treinar em paralelo.
+                            </td>
+                            <td>Variável; rodadas são sequenciais.</td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">Risco de overfitting</th>
+                            <td>Alto se crescer sem controle.</td>
+                            <td>
+                                Em geral menor que uma árvore isolada,
+                                mas não eliminado.
+                            </td>
+                            <td>
+                                Depende da profundidade, rodadas
+                                e regularização.
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row">Cenário ideal</th>
+                            <td>
+                                Transparência e baixa latência
+                                são prioritárias.
+                            </td>
+                            <td>
+                                Bom equilíbrio entre estabilidade
+                                e esforço de configuração.
+                            </td>
+                            <td>
+                                Desempenho preditivo importa e há
+                                espaço para ajuste.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+            <p class="table-note">
+                A tabela é qualitativa, baseada nas características dos
+                algoritmos e nas pesquisas do grupo.
+            </p>
+
+        </section>
+
+        <!-- ========================================
+             8. EXPERIMENTO NETPULSE
+        ========================================= -->
+        <section class="content-section experiment-section" id="experimento">
+
+            <div class="section-heading">
+                <span class="section-kicker">DO CONCEITO AO CENÁRIO</span>
+
+                <h2>O preditor de redes NetPulse</h2>
+
+                <p>
+                    O sistema considera medições de conectividade para
+                    reconhecer possíveis degradações e priorizar a investigação.
+                </p>
+            </div>
+
+            <!-- Variáveis analisadas -->
+            <div class="signal-grid">
+
+                <div class="signal-card">
+                    <span class="signal-icon" aria-hidden="true">↔</span>
+                    <h3>Latência</h3>
+                    <p>
+                        Tempo que um pacote leva para obter resposta,
+                        medido em milissegundos.
+                    </p>
+                </div>
+
+                <div class="signal-card">
+                    <span class="signal-icon" aria-hidden="true">%</span>
+                    <h3>Perda de pacotes</h3>
+                    <p>
+                        Proporção de pacotes enviados que não chegam
+                        ao destino.
+                    </p>
+                </div>
+
+                <div class="signal-card">
+                    <span class="signal-icon" aria-hidden="true">∿</span>
+                    <h3>Jitter</h3>
+                    <p>
+                        Variação do atraso entre medições sucessivas.
+                    </p>
+                </div>
+
+                <div class="signal-card">
+                    <span class="signal-icon" aria-hidden="true">✓</span>
+                    <h3>Disponibilidade</h3>
+                    <p>
+                        Percentual do período em que o serviço
+                        ou enlace está acessível.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Importância dos erros -->
+            <div class="callout">
+
+                <div class="callout-icon" aria-hidden="true">!</div>
+
+                <div>
+                    <strong>
+                        O erro mais perigoso pode ser o problema
+                        que o modelo não detecta.
+                    </strong>
+
+                    <p>
+                        O cenário do grupo define o falso negativo
+                        de risco ou falha como crítico: uma instabilidade
+                        não detectada pode impedir uma ação preventiva.
+                        Alertas falsos também importam, mas tendem a gerar
+                        verificações adicionais. Por isso, o recall da classe
+                        de risco deve receber atenção especial, junto do
+                        F1-score e da latência de inferência.
+                    </p>
+                </div>
+
+            </div>
+
+            
+<!-- Situação e configuração do experimento didático -->
+<div class="experiment-status">
+
+    <div>
+        <span class="status-pill">
+            EXPERIMENTO DIDÁTICO · DADOS SINTÉTICOS
+        </span>
+
+        <h3>O que foi simulado e o que os resultados mostram</h3>
+
+        <p>
+            Para compreender como os três algoritmos podem ser
+            comparados, propomos um experimento com 5.000 amostras
+            artificiais de monitoramento de rede. Cada amostra contém
+            latência, perda de pacotes, jitter e disponibilidade.
+            Os modelos devem classificar cada situação como
+            Estável, Em Risco ou Com Falha.
+        </p>
+
+        <div class="status-grid">
+
+            <div>
+                <b>Configuração proposta</b>
+                <span>
+                    5.000 amostras sintéticas; 4.000 para treinamento
+                    e 1.000 para teste; semente aleatória fixa em 42.
+                </span>
+            </div>
+
+            <div>
+                <b>Métricas avaliadas</b>
+                <span>
+                    Acurácia, precisão macro, recall macro,
+                    F1-Score macro, tempo de treinamento e
+                    tempo médio de previsão por amostra.
+                </span>
+            </div>
+
+            <div>
+                <b>Objetivo</b>
+                <span>
+                    Entender os compromissos entre qualidade das
+                    classificações, velocidade e interpretabilidade.
+                </span>
+            </div>
+
+            <div>
+                <b>Limitação</b>
+                <span>
+                    Os dados são artificiais e não comprovam o
+                    desempenho do NetPulse em uma rede real.
+                </span>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+           
+            <!-- Código Python -->
+            <div class="code-panel">
+
+                <div class="code-head">
+                    <span>PYTHON · EXEMPLO DE AVALIAÇÃO</span>
+
+                    <button class="copy-code" type="button">
+                        Copiar código
+                    </button>
+                </div>
+
+                <pre><code id="sample-code">
+import time
+import numpy as np
+import pandas as pd
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score
+)
+from xgboost import XGBClassifier
+
+# 1. Gerar dados sintéticos e reproduzíveis
+rng = np.random.default_rng(42)
+n = 5000
+
+latencia = np.clip(
+    rng.gamma(2.2, 22, n), 1, 300
+)
+perda = np.clip(
+    rng.beta(1.2, 10, n) * 100, 0, 100
+)
+jitter = np.clip(
+    rng.gamma(1.8, 7, n), 0.1, 100
+)
+disponibilidade = np.clip(
+    100 - perda * 0.7 + rng.normal(0, 1.8, n),
+    70, 100
+)
+
+X = pd.DataFrame({
+    "latencia_ms": latencia,
+    "perda_pct": perda,
+    "jitter_ms": jitter,
+    "disponibilidade_pct": disponibilidade
+})
+
+# 2. Criar classes didáticas por regras
+risco = (
+    (latencia > 100).astype(int)
+    + (perda > 3).astype(int)
+    + (jitter > 25).astype(int)
+    + (disponibilidade < 96).astype(int)
+)
+
+y = np.where(
+    risco >= 3, "Com Falha",
+    np.where(risco >= 1, "Em Risco", "Estável")
+)
+
+# Introduzir 3% de ruído nos rótulos
+mascara = rng.random(n) < 0.03
+classes = np.array(["Estável", "Em Risco", "Com Falha"])
+
+for i in np.where(mascara)[0]:
+    y[i] = rng.choice(classes[classes != y[i]])
+
+# 3. Mesma divisão para todos os modelos
+X_treino, X_teste, y_treino, y_teste = train_test_split(
+    X, y, test_size=0.20,
+    random_state=42, stratify=y
+)
+
+encoder = LabelEncoder()
+y_treino_num = encoder.fit_transform(y_treino)
+
+modelos = {
+    "Árvore de Decisão": DecisionTreeClassifier(
+        max_depth=8, random_state=42
+    ),
+    "Random Forest": RandomForestClassifier(
+        n_estimators=100, max_depth=12,
+        random_state=42, n_jobs=1
+    ),
+    "XGBoost": XGBClassifier(
+        n_estimators=100, max_depth=5,
+        learning_rate=0.1,
+        subsample=0.9, colsample_bytree=0.9,
+        objective="multi:softprob",
+        eval_metric="mlogloss",
+        random_state=42, n_jobs=1,
+        tree_method="hist"
+    )
+}
+
+resultados = []
+
+for nome, modelo in modelos.items():
+    # Treinamento
+    inicio = time.perf_counter()
+
+    if nome == "XGBoost":
+        modelo.fit(X_treino, y_treino_num)
+    else:
+        modelo.fit(X_treino, y_treino)
+
+    tempo_treino = time.perf_counter() - inicio
+
+    # Previsão e medição repetida
+    modelo.predict(X_teste.iloc[:10])
+    repeticoes = 100
+
+    inicio = time.perf_counter()
+    for _ in range(repeticoes):
+        previsoes = modelo.predict(X_teste)
+
+    tempo_previsao = (
+        time.perf_counter() - inicio
+    ) / (repeticoes * len(X_teste)) * 1000
+
+    if nome == "XGBoost":
+        previsoes = encoder.inverse_transform(
+            previsoes.astype(int)
+        )
+
+    resultados.append({
+        "Modelo": nome,
+        "Acurácia (%)": round(
+            accuracy_score(y_teste, previsoes) * 100, 2
+        ),
+        "Precisão macro (%)": round(
+            precision_score(
+                y_teste, previsoes,
+                average="macro", zero_division=0
+            ) * 100, 2
+        ),
+        "Recall macro (%)": round(
+            recall_score(
+                y_teste, previsoes,
+                average="macro", zero_division=0
+            ) * 100, 2
+        ),
+        "F1 macro (%)": round(
+            f1_score(
+                y_teste, previsoes,
+                average="macro", zero_division=0
+            ) * 100, 2
+        ),
+        "Treinamento (s)": round(tempo_treino, 4),
+        "Previsão (ms/amostra)": round(tempo_previsao, 6)
+    })
+
+print(pd.DataFrame(resultados).to_string(index=False))
+</code></pre>
+
+                <p class="code-foot">
+                    Trecho ilustrativo: pressupõe que
+                    <code>modelo</code>, <code>X_test</code> e
+                    <code>y_test</code> estejam definidos. A variável
+                    <code>y_pred</code> é criada pela previsão.
+                    O exemplo pressupõe que a classe positiva represente
+                    risco ou falha. Ajuste <code>average</code> conforme
+                    o formato dos rótulos.
+                </p>
+
+            </div>
+
+            
+<!-- Resultados do experimento didático -->
+<div class="results-placeholder">
+
+    <div>
+        <span class="section-kicker">
+            RESULTADOS DO EXPERIMENTO DIDÁTICO
+        </span>
+
+        <h3>Comparação de métricas e tempos</h3>
+
+        <p>
+            Os valores abaixo são os resultados ilustrativos
+            apresentados para a simulação descrita neste artigo.
+        </p>
+
+        <div class="table-wrap">
+
+            <table>
+                <caption>
+                    Comparação dos três modelos com dados sintéticos
+                </caption>
+
+                <thead>
+                    <tr>
+                        <th scope="col">Métrica</th>
+                        <th scope="col">Árvore de Decisão</th>
+                        <th scope="col">Random Forest</th>
+                        <th scope="col">XGBoost</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <th scope="row">Acurácia (%)</th>
+                        <td>96,30%</td>
+                        <td>96,70%</td>
+                        <td>96,40%</td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Precisão macro (%)</th>
+                        <td>95,73%</td>
+                        <td>96,34%</td>
+                        <td>96,01%</td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Recall macro (%)</th>
+                        <td>92,41%</td>
+                        <td>93,03%</td>
+                        <td>92,51%</td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">F1-Score macro (%)</th>
+                        <td>94,00%</td>
+                        <td>94,61%</td>
+                        <td>94,17%</td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Treinamento (s)</th>
+                        <td>0,0145</td>
+                        <td>0,6608</td>
+                        <td>0,1285</td>
+                    </tr>
+
+                    <tr>
+                        <th scope="row">Previsão (ms/amostra)</th>
+                        <td>0,000454</td>
+                        <td>0,009623</td>
+                        <td>0,003993</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <p class="table-note">
+            Fonte: resultados ilustrativos de um experimento didático
+            com dados sintéticos. Os números e os tempos devem ser
+            confirmados pela execução reproduzível do código.
+            O desempenho não representa uma rede real.
+        </p>
+    </div>
+
+</div>
+
+        </section>
+
+        <!-- ========================================
+             9. RECOMENDAÇÃO FINAL
+        ========================================= -->
+        <section class="content-section recommendation" id="recomendacao">
+
+            <div class="recommendation-inner">
+
+                <span class="section-kicker">NOSSA RECOMENDAÇÃO</span>
+
+                <h2>Escolher com evidências, não por fama.</h2>
+
+                <p>
+                    Para o NetPulse, a primeira etapa é usar a Árvore
+                    de Decisão como baseline interpretável e comparar
+                    seu comportamento com Random Forest e XGBoost sob
+                    as mesmas condições. A escolha final precisa priorizar
+                    o recall da classe de risco sem ultrapassar o limite
+                    operacional proposto de 5 ms por amostra.
+                </p>
+
+                <p>
+                    Se a Random Forest reduzir falsos negativos com
+                    latência aceitável, pode oferecer um equilíbrio prático.
+                    Se o XGBoost trouxer ganho consistente no recall/F1
+                    sem exceder a latência, pode ser preferível. Se a árvore
+                    simples atingir os requisitos e a auditabilidade for
+                    decisiva, sua simplicidade pode justificar a escolha.
+                </p>
+
+                <div class="recommendation-rule">
+                    <span>Critérios de decisão</span>
+                    <b>
+                        Recall de risco → F1-score →
+                        latência ≤ 5 ms → interpretabilidade
+                    </b>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================================
+             10. REFERÊNCIAS
+        ========================================= -->
+        <section class="content-section links-section" id="referencias">
+
+            <div class="section-heading">
+                <span class="section-kicker">PARA IR ALÉM</span>
+
+                <h2>Referências e leituras recomendadas</h2>
+
+                <p>
+                    Documentação e textos usados para embasar a explicação.
+                    A recomendação final deve ser apoiada também
+                    pelo experimento do grupo.
+                </p>
+            </div>
+
+            <div class="reference-list">
+
+                <a
+                    href="https://scikit-learn.org/stable/modules/tree.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <span>01</span>
+                    <div>
+                        <strong>Scikit-learn — Decision Trees</strong>
+                        <p>
+                            Documentação oficial sobre árvores,
+                            critérios de divisão e parâmetros.
+                        </p>
+                    </div>
+                    <b>↗</b>
+                </a>
+
+                <a
+                    href="https://scikit-learn.org/stable/modules/ensemble.html#forest"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <span>02</span>
+                    <div>
+                        <strong>Scikit-learn — Random Forests</strong>
+                        <p>
+                            Explica florestas, agregação de árvores
+                            e opções de configuração.
+                        </p>
+                    </div>
+                    <b>↗</b>
+                </a>
+
+                <a
+                    href="https://xgboost.readthedocs.io/en/stable/tutorials/model.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <span>03</span>
+                    <div>
+                        <strong>
+                            XGBoost — Introduction to Boosted Trees
+                        </strong>
+                        <p>
+                            Documentação oficial sobre árvores
+                            impulsionadas e objetivo de treinamento.
+                        </p>
+                    </div>
+                    <b>↗</b>
+                </a>
+
+                <a
+                    href="https://doi.org/10.1145/2939672.2939785"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <span>04</span>
+                    <div>
+                        <strong>
+                            Chen e Guestrin (2016) — XGBoost
+                        </strong>
+                        <p>
+                            Artigo original sobre um sistema escalável
+                            de tree boosting.
+                        </p>
+                    </div>
+                    <b>↗</b>
+                </a>
+
+                <a
+                    href="https://www.datacamp.com/pt/tutorial/ensemble-learning-python-guide"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <span>05</span>
+                    <div>
+                        <strong>
+                            DataCamp — Aprendizado em conjunto em Python
+                        </strong>
+                        <p>
+                            Leitura introdutória para comparar bagging
+                            e boosting com código.
+                        </p>
+                    </div>
+                    <b>↗</b>
+                </a>
+
+                <a
+                    href="https://www.ibm.com/br-pt/think/topics/decision-trees"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <span>06</span>
+                    <div>
+                        <strong>IBM — Árvores de decisão</strong>
+                        <p>
+                            Visão geral dos conceitos e aplicações
+                            de árvores de decisão.
+                        </p>
+                    </div>
+                    <b>↗</b>
+                </a>
+
+                <a
+                    href="https://hub.asimov.academy/blog/random-forest/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    <span>07</span>
+                    <div>
+                        <strong>Asimov Academy — Random Forest</strong>
+                        <p>
+                            Introdução prática à floresta aleatória
+                            e ao uso em Machine Learning.
+                        </p>
+                    </div>
+                    <b>↗</b>
+                </a>
+
+            </div>
+
+            <p class="reference-note">
+                Acesso às páginas: 17 out. 2026. O conteúdo deste artigo
+                também se baseia nas pesquisas internas do Grupo 2 sobre
+                Árvore de Decisão, Random Forest, XGBoost, comparação
+                entre modelos e especificação do cenário NetPulse.
+            </p>
+
+        </section>
+
+        <!-- ========================================
+             11. AUTORES E CONSENTIMENTO
+        ========================================= -->
+        <section class="content-section author-section" id="autoria">
+
+            <div class="section-heading">
+                <span class="section-kicker">QUEM FEZ ESTE ARTIGO</span>
+
+                <h2>Grupo 2 · Ciência da Computação</h2>
+
+                <p>
+                    Os cartões abaixo identificam a equipe. 
+                </p>
+            </div>
+
+            <div class="author-grid">
+
+                <!-- Eduardo Gabriel -->
+                <article class="author-card">
+                    <div class="author-photo initials" aria-label="Foto não fornecida">
+                        EG
+                    </div>
+
+                    <div class="author-info">
+                        <h3>Eduardo Gabriel de Souza Cardozo </h3>
+
+                        <p>
+                            Estudante de Ciência da Computação, com interesse em cibersegurança.
+                        </p>
+
+                        <div class="profile-links">
+                            <a
+                                href="https://github.com/Eduyuk14su"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                GitHub ↗
+                            </a>
+
+                            <a
+                                href="https://www.linkedin.com/in/eduardo-gabriel-8305b7358/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                LinkedIn ↗
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Gabriel Alves -->
+                <article class="author-card">
+                    <div class="author-photo initials" aria-label="Foto não fornecida">
+                        GA
+                    </div>
+
+                    <div class="author-info">
+                        <h3>Gabriel Alves</h3>
+
+                        <p>
+                            Estudante de Ciência da Computação.
+                            Mini-bio e perfis profissionais a adicionar
+                            pelo integrante.
+                        </p>
+
+                        <div class="profile-links">
+                            <span>GitHub pendente</span>
+                            <span>LinkedIn pendente</span>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Gisele Franco -->
+                <article class="author-card">
+
+                    <img
+                        class="author-photo"
+                        src="images/gisele-franco.jpg"
+                        alt="Foto autorizada de Gisele Franco de Lima"
+                    >
+
+                    <div class="author-info">
+                        <h3>Gisele Franco de Lima</h3>
+
+                        <p>
+                            Estudante de Ciência da Computação,
+                            com interesse em cibersegurança.
+                        </p>
+
+                        <div class="profile-links">
+                            <a
+                                href="https://github.com/gi-franco"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                GitHub ↗
+                            </a>
+
+                            <a
+                                href="https://www.linkedin.com/in/gisele-franco-de-lima-b57638389"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                LinkedIn ↗
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Luigi Caires -->
+                <article class="author-card">
+
+                    <img
+                        class="author-photo"
+                        src="images/luigi_caires.png"
+                        alt="Foto autorizada de Luigi Santos Caires"
+                    >
+
+                    <div class="author-info">
+                        <h3>Luigi Santos Caires</h3>
+
+                        <p>
+                            Estudante de Ciência da Computação.
+                        </p>
+
+                        <div class="profile-links">
+                            <a
+                                href="https://github.com/luigilegal"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                GitHub ↗
+                            </a>
+
+                            <a
+                                href="//www.linkedin.com/in/luigi-s-67b101387/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                LinkedIn ↗
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Rodrigo Galvão -->
+                <article class="author-card">
+
+                    <img
+                        class="author-photo"
+                        src="images/rodrigo-galvao.jpg"
+                        alt="Foto autorizada de Rodrigo de Souza Galvão"
+                    >
+
+                    <div class="author-info">
+                        <h3>Rodrigo de Souza Galvão</h3>
+
+                        <p>
+                            Estudante de Ciência da Computação,
+                            com interesse em desenvolvimento de software
+                            e engenharia de dados.
+                        </p>
+
+                        <div class="profile-links">
+                            <a
+                                href="https://github.com/Rodrigo3441"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                GitHub ↗
+                            </a>
+
+                            <a
+                                href="https://www.linkedin.com/in/rodrigo-souza-galvao/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                LinkedIn ↗
+                            </a>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+
+            <!-- Aviso de privacidade -->
+            <div class="privacy-note">
+
+                <strong>Privacidade e consentimento</strong>
+
+                <p>
+                    As informações pessoais contidas no arquivo fornecido contêm
+                    termos de autorização assinados pelos integrantes.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- ========================================
+         RODAPÉ
+    ========================================= -->
+    <footer class="footer">
+
+        <div class="footer-top">
+
+            <a class="brand footer-brand" href="#inicio">
+
+                <span class="brand-mark">N<span>↗</span></span>
+
+                <span>
+                    NetPulse
+                    <small>INTELIGÊNCIA PARA REDES</small>
+                </span>
+
+            </a>
+
+            <p>
+                Um artigo técnico do Grupo 2<br>
+                Estrutura de Dados II · Braz Cubas
+            </p>
+
+            <a class="back-top" href="#inicio">
+                Voltar ao topo ↑
+            </a>
+
+        </div>
+
+        <div class="footer-bottom">
+
+            <span>© 2026 Grupo 2 · Conteúdo acadêmico.</span>
+
+            <span>Última revisão: 18/10/2026</span>
+
+            <span>
+                Licença: CC BY-NC 4.0
+                <a
+                    href="https://creativecommons.org/licenses/by-nc/4.0/deed.pt_BR"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Saiba mais ↗
+                </a>
+            </span>
+
+            <span>
+                Repositório GitHub:
+                <em>https://github.com/Eduyuk14su/NetPulse-Blog</em>
+            </span>
+
+        </div>
+
+        <p class="footer-disclaimer">
+            As figuras de modelo são esquemáticas. O cenário de rede e
+            o limite de 5 ms são requisitos propostos pelo grupo,
+            não uma certificação de desempenho em produção.
+        </p>
+
+    </footer>
+
+    <!-- JavaScript do projeto -->
+    <script src="js/main.js"></script>
+
+</body>
+</html>

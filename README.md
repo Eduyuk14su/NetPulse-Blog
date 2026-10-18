@@ -1,17 +1,18 @@
-# NetPulse-Blog
-Esse repositório faz parte do projeto acadêmico NetPulse. É um sistema para monitoramento de métricas de rede com análise em tempo real e predição de falhas fazendo uso de árvore de decisão e usando como base de dados a RIPE Atlas API.
+# NetPulse — Árvore, floresta ou boosting?
 
-## 👨‍💻 Equipe:
+Página estática do Grupo 2 para o trabalho de Estrutura de Dados II (Braz Cubas).
 
-- Eduardo Gabriel de Souza Cardozo
-- Gabriel Alves de Farias
-- Gisele Franco de Lima
-- Luigi Santos Caires
-- Rodrigo de Souza Galvão
+## Abrir localmente
+Abra `index.html` no navegador. Não há servidor nem etapa de compilação. Para testar o comportamento de cópia de código, use um navegador com Clipboard API habilitada (normalmente em `localhost` ou HTTPS).
 
-## 🔗 Projeto Interdisciplinar
-Esse projeto possui conexão com as seguintes disciplinas:
+## Estrutura
+- `index.html`: artigo técnico
+- `css/styles.css`: layout responsivo e estilos
+- `js/main.js`: menu mobile e botão de copiar código
+- `images/`: fotos autorizadas incluídas no material fornecido
 
-- Redes de Computadores
-- Análise e Projeto de Sistemas
-- Estrutura de Dados II
+## Experimento
+O artigo descreve as condições que devem ser atendidas, mas não inclui um notebook de comparação reproduzível porque as pesquisas fornecidas não continham os resultados dos três modelos nem o script completo. Não interprete o código de avaliação mostrado na página como experimento já executado.
+
+## Licença
+Conteúdo textual e diagramas originais: CC BY-NC 4.0 (ver https://creativecommons.org/licenses/by-nc/4.0/deed.pt_BR). As fotografias permanecem sujeitas às autorizações dos respectivos autores e não devem ser reutilizadas separadamente.
