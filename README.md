@@ -1,5 +1,7 @@
 # NetPulse — Árvore, floresta ou boosting?
 
+### Site: [https://netpulseblog.netlify.app/](https://netpulseblog.netlify.app/)
+
 Página estática do Grupo 2 para o trabalho de Estrutura de Dados II (Braz Cubas).
 
 ## Abrir localmente
